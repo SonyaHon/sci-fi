@@ -9,3 +9,4 @@ edition = "2021"
 rltk = "0.8.7"
 specs = "0.18.0"
 specs-derive = "0.4.1"
+noise = { version = "0.8.2", features = ["images"] }

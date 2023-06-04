@@ -1,7 +1,9 @@
+use builder::TerrainBuilder;
 use map::{CameraOffset, Map, MapCellDataStorage};
 use rltk::GameState;
 use specs::prelude::*;
 
+pub mod builder;
 pub mod components;
 pub mod map;
 pub mod util;
@@ -35,6 +37,12 @@ impl GameState for State {
                 rltk::VirtualKeyCode::Down => {
                     camera_offset.offset.y -= 1;
                 }
+                rltk::VirtualKeyCode::Period if ctx.shift => {
+                    camera_offset.offset.z -= 1;
+                }
+                rltk::VirtualKeyCode::Comma if ctx.shift => {
+                    camera_offset.offset.z += 1;
+                }
                 _ => {}
             },
         }
@@ -62,6 +70,19 @@ impl GameState for State {
                 rltk::to_cp437('█'),
             );
         }
+        for y in 0..screen_height - 4 {
+            ctx.set(
+                screen_width - 1,
+                screen_height - y - 3,
+                if camera_offset.offset.z == y as i32 {
+                    rltk::YELLOW
+                } else {
+                    rltk::BLUE
+                },
+                rltk::BLACK,
+                rltk::to_cp437('█'),
+            );
+        }
 
         let map = self.ecs.fetch::<Map>();
         let cell_data = self.ecs.fetch::<MapCellDataStorage>();
@@ -83,7 +104,7 @@ impl GameState for State {
 }
 
 fn main() -> rltk::BError {
-    let context = rltk::RltkBuilder::simple(150, 100)
+    let context = rltk::RltkBuilder::simple(154, 104)
         .unwrap()
         .with_title("SciFi Rust #0.0.0")
         .with_fitscreen(true)
@@ -92,7 +113,9 @@ fn main() -> rltk::BError {
     let mut gamestate = State::new();
 
     gamestate.ecs.insert(MapCellDataStorage::init());
-    gamestate.ecs.insert(Map::default_simple());
+    gamestate
+        .ecs
+        .insert(Map::new(100, 100, 100).apply_build(TerrainBuilder::default()));
     gamestate.ecs.insert(CameraOffset::init());
 
     rltk::main_loop(context, gamestate)

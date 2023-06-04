@@ -63,8 +63,8 @@ impl MapCellDataStorage {
 }
 
 pub struct Map {
-    size: Vec3,
-    data: Vec<MapCell>,
+    pub size: Vec3,
+    pub data: Vec<MapCell>,
 }
 
 impl Map {
@@ -73,6 +73,17 @@ impl Map {
             size: Vec3::new(10, 10, 1),
             data: vec![MapCell::Floor; 100],
         }
+    }
+
+    pub fn new(x: i32, y: i32, z: i32) -> Self {
+        Self {
+            size: Vec3::new(x, y, z),
+            data: vec![MapCell::Void; (x * y * z) as usize],
+        }
+    }
+
+    pub fn apply_build(self, mut builder: impl MapBuilder) -> Self {
+        builder.build(self)
     }
 
     fn itoxyz(&self, i: usize) -> Vec3 {
@@ -86,6 +97,11 @@ impl Map {
 
     fn xyztoi(&self, x: i32, y: i32, z: i32) -> usize {
         ((z * self.size.x * self.size.y) + (y * self.size.x) + x) as usize
+    }
+
+    pub fn set_cell(&mut self, x: i32, y: i32, z: i32, cell: MapCell) {
+        let i = self.xyztoi(x, y, z);
+        self.data[i] = cell;
     }
 
     pub fn get_cell(&self, x: i32, y: i32, z: i32) -> Option<&MapCell> {
@@ -106,4 +122,8 @@ impl CameraOffset {
             offset: Vec3::zero(),
         }
     }
+}
+
+pub trait MapBuilder {
+    fn build(&mut self, map: Map) -> Map;
 }
